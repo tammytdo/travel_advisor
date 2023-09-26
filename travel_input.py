@@ -19,15 +19,15 @@ completion = openai.ChatCompletion.create(
   temperature=0.5,
 )
 chatgpt_response = completion.choices[0].message.content
-# print("chatgpt_response >>> ", chatgpt_response)
+# print("chatgpt_response >> ", chatgpt_response)
 
 message_history = []
 user_search_string = f"What is the most famous attraction in this city?"
 message_history.append({"role": "user", "content": user_search_string})
-# print("message_history only user >>> ", message_history)
+# print("message_history only user >> ", message_history)
 
 message_history.append({"role": "assistant", "content": chatgpt_response})
-# print("message_history with assistant >>> ", message_history)
+# print("message_history with assistant >> ", message_history)
 
 completion = openai.ChatCompletion.create(
   model=model_engine,
@@ -35,4 +35,4 @@ completion = openai.ChatCompletion.create(
 )
 
 chatgpt_response = completion.choices[0].message.content
-print("chatgpt_response 2 >>> ", chatgpt_response)
+print("chatgpt_response 2 >> ", chatgpt_response)
