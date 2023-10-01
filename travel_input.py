@@ -9,8 +9,16 @@ openai.api_key = config.OPEN_AI_API_KEY
 google_places_api_key = config.GOOGLE_PLACES_API_KEY
 weatherbit_api_key = config.WEATHER_BIT_API_KEY
 
-# testing
+# user input testing 
 user_destination = 'Seattle'
+
+# place details testing 
+lat=21.0277644
+lng=105.8341598
+
+# weather testing
+place_full_name='hanoi, vn'
+
 
 '''
 # CREDIT to Sentdex
@@ -48,14 +56,14 @@ chatgpt_response = completion.choices[0].message.content
 print("chatgpt_response 2 >> ", chatgpt_response)
 '''
 
-'''
-#use user destination input to get google place id
+
+#get google place id
 google_place_id_url=f'https://maps.googleapis.com/maps/api/geocode/json?address={user_destination}&key={google_places_api_key}'
 response_google_place_id = requests.get(google_place_id_url)
 converted_place_id_response = json.loads(response_google_place_id.text)
 retreived_place_id = converted_place_id_response['results'][0]['place_id']
 
-#use the place id to get place details 
+#get place details 
 google_place_details_url=f'https://maps.googleapis.com/maps/api/place/details/json?place_id={retreived_place_id}&key={google_places_api_key}'
 response_google_place_details = requests.get(google_place_details_url)
 converted_place_full_details_response = json.loads(response_google_place_details.text)
@@ -67,17 +75,7 @@ place_icon = retreived_place_full_details["icon"]
 place_url = retreived_place_full_details["url"]
 place_lat = retreived_place_full_details['geometry']['location']['lat']
 place_lng = retreived_place_full_details['geometry']['location']['lng']
-'''
 
-
-#use lat and lng to get google nearby attractions
-# hanoi sample lat & lng 
-lat=21.0277644
-lng=105.8341598
-
-# seattle sample lat & lng 
-# lat=47.608013
-# lng=-122.335167
 
 #get restaurants within 16000 meters / 10 miles
 google_nearby_restaurants_url = f'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&type=restaurant&radius=16000&key={google_places_api_key}'
@@ -96,18 +94,11 @@ converted_nearby_attractions_search = json.loads(response_nearby_attraction_sear
 nearby_attraction_results = [attraction for attraction in converted_nearby_attractions_search['results']]
 nearby_attraction_results_sorted = sorted(nearby_attraction_results, key=lambda x: x.get('rating', 0), reverse=True)
 
-# Print the sorted results
 for attraction in nearby_attraction_results_sorted:
     print(f"{attraction['name']}: {attraction.get('rating', 'N/A')} stars")
 
-
-
-# weather testing
-place_full_name='hanoi, vn'
-
 #get weather data
 weatherbit_forecast_url = f'https://api.weatherbit.io/v2.0/forecast/daily?city={place_full_name}&key={weatherbit_api_key}'
-# print("weatherbit_forecast_url>> ", weatherbit_forecast_url)
 
 response_weatherbit_forecast = requests.get(weatherbit_forecast_url)
 converted_weather_response = json.loads(response_weatherbit_forecast.text)
