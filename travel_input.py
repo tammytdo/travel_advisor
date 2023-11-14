@@ -9,53 +9,23 @@ openai.api_key = config.OPEN_AI_API_KEY
 google_places_api_key = config.GOOGLE_PLACES_API_KEY
 weatherbit_api_key = config.WEATHER_BIT_API_KEY
 
-'''
-# user input testing 
-user_destination = 'Seattle'
 
-# place details testing 
-lat=21.0277644
-lng=105.8341598
+def chatgpt_search(user_dest, user_date):
+  # # CREDIT to Sentdex
+  model_engine = "gpt-3.5-turbo"
+  user_search_string3 = f"What is the typical weather in {user_dest} in the month of {user_date}?"
 
-# weather testing
-place_full_name='hanoi, vn'
-'''
-
-
-# # CREDIT to Sentdex
-user_destination = input("Enter a city: ")
-model_engine = "gpt-3.5-turbo"
-user_search_string = f"What city do you want to travel to?"
-user_search_string2 = f"What month will you travel?"
-user_search_string3 = f"What is the typical weather in {user_destination} in the month of January?"
-
-completion = openai.ChatCompletion.create(
-  model=model_engine,
-  messages=[{"role": "user", "content": user_search_string3}],
-  # max_tokens=30,
-  n=1,
-  stop=None, 
-  temperature=0.5,
-)
-chatgpt_response = completion.choices[0].message.content
-print("chatgpt_response >> ", chatgpt_response)
-
-# message_history = []
-# user_search_string = f"What is the most famous attraction in this city?"
-# message_history.append({"role": "user", "content": user_search_string})
-# # print("message_history only user >> ", message_history)
-
-# message_history.append({"role": "assistant", "content": chatgpt_response})
-# # print("message_history with assistant >> ", message_history)
-
-# completion = openai.ChatCompletion.create(
-#   model=model_engine,
-#   messages=message_history,
-# )
-
-# chatgpt_response = completion.choices[0].message.content
-# print("chatgpt_response 2 >> ", chatgpt_response)
-
+  completion = openai.ChatCompletion.create(
+    model=model_engine,
+    messages=[{"role": "user", "content": user_search_string3}],
+    # max_tokens=30,
+    n=1,
+    stop=None, 
+    temperature=0.5,
+  )
+  chatgpt_response = completion.choices[0].message.content
+  print("chatgpt_response >> ", chatgpt_response)
+  return
 
 #get google place id
 def get_place_id(user_dest):
@@ -132,10 +102,25 @@ class WeatherDay:
 
 
 if __name__ == '__main__':
-  print('hi py')
+  '''
+  # user input testing 
+  user_destination = 'Seattle'
+
+  # place details testing 
+  lat=21.0277644
+  lng=105.8341598
+
+  # weather testing
+  place_full_name='hanoi, vn'
+  '''
+  
+  user_destination = input("Enter a city >> ")
+  travel_date = input("What month will you travel? >> ")
+  print(chatgpt_search(user_destination, travel_date), '\n')
+
   place_id = get_place_id(user_destination)
   place_details = get_place_details(place_id)
   lat, lon = place_details[2], place_details[3]
-  restaurants_list = get_restaurants(lat, lon)
-  attractions_list = get_attractions(lat, lon)
-  # print(attractions_list)
+ 
+  print(f'Restaurants: {get_restaurants(lat, lon)}\n')
+  print(f'Attractions: {get_attractions(lat, lon)}\n')
