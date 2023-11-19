@@ -25,17 +25,27 @@ def get_city_data():
   user_destination = request.args.get('user_destination')
   month = request.args.get('month')
 
-  response = {}
+  typical_weather = get_typical_weather(user_destination, month)
   place_id = get_place_id(user_destination)
   place_details = get_place_details(place_id)
   lat, lon = place_details[2], place_details[3]
   restaurants_list = get_restaurants(lat, lon)
   attractions_list = get_attractions(lat, lon)
-  typical_weather = get_typical_weather(user_destination, month)
-  response.update({'restaurants' : restaurants_list})
-  response.update({'attractions' : attractions_list})
-  response.update({'typical_weather' : typical_weather})
-  print(response)
+  upcoming_weather = get_weather_data(user_destination)
+  # response.update({'restaurants' : restaurants_list})
+  # response.update({'attractions' : attractions_list})
+  # response.update({'typical_weather' : typical_weather})
+  # response.update({'upcoming_weather' : upcoming_weather})
+  response = {
+    'sample': 'sample', 
+    'restaurants' : restaurants_list, 
+    'attractions' : attractions_list,
+    'typical_weather' : typical_weather,
+    'upcoming_weather' : upcoming_weather
+    }
+
+  # print('upcoming_weather', upcoming_weather)
+  print('response', response)
   return jsonify(response)
 
 # # CREDIT to Sentdex
@@ -100,25 +110,31 @@ def get_attractions(lat,lng):
 
   return attractions_list
 
-# def get_weather_data(place_name):
-#   weatherbit_forecast_url = f'https://api.weatherbit.io/v2.0/forecast/daily?city={place_name}&key={weatherbit_api_key}'
+def get_weather_data(destination):
+  weatherbit_forecast_url = f'https://api.weatherbit.io/v2.0/forecast/daily?city={destination}&key={weatherbit_api_key}'
 
-#   response_weatherbit_forecast = requests.get(weatherbit_forecast_url)
-#   converted_weather_response = json.loads(response_weatherbit_forecast.text)
-#   retreived_weather=converted_weather_response["data"][:7]
-#   weather_instances_list = [WeatherDay(weather_obj) for weather_obj in retreived_weather]
-  
-#   return weather_instances_list
+  response_weatherbit_forecast = requests.get(weatherbit_forecast_url)
+  converted_weather_response = response_weatherbit_forecast.json()
+  retreived_weather=converted_weather_response.get('data', [])[:7]
+  weather_instances_list = [WeatherDay(weather_obj) for weather_obj in retreived_weather]
+  # print('weather_instances_list', weather_instances_list)
+  # return weather_instances_list
+  return [weather.to_json() for weather in weather_instances_list]
 
-# class WeatherDay:
-#   def __init__(self, weather_object):
-#     self.date = weather_object.get('datetime', None)
-#     self.min_temp = weather_object.get('min_temp' , None)
-#     self.max_temp = weather_object.get('max_temp', None)
-#     self.description = weather_object.get('weather', None).get('description', None)
+class WeatherDay:
+  def __init__(self, weather_object):
+    self.date = weather_object.get('datetime', None)
+    self.min_temp = weather_object.get('min_temp' , None)
+    self.max_temp = weather_object.get('max_temp', None)
+    self.description = weather_object.get('weather', None).get('description', None)
 
-#   def __str__(self):
-#     return f"Date: {self.date}. Degrees: {self.min_temp}-{self.max_temp}. Description: {self.description}"
+  def to_json(self):
+      return {
+          "date": self.date,
+          "min_temp": self.min_temp,
+          "max_temp": self.max_temp,
+          "description": self.description
+      }
 
 if __name__ == '__main__':
   print('hi py')
