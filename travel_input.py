@@ -4,60 +4,53 @@ import openai
 import config
 import requests
 import json 
+from flask import Flask, request, jsonify
 
 openai.api_key = config.OPEN_AI_API_KEY
 google_places_api_key = config.GOOGLE_PLACES_API_KEY
 weatherbit_api_key = config.WEATHER_BIT_API_KEY
+model_engine = "gpt-3.5-turbo"
 
-'''
-# user input testing 
-user_destination = 'Seattle'
+app = Flask(__name__)
 
-# place details testing 
-lat=21.0277644
-lng=105.8341598
+@app.route('/', methods=['GET'])
+def hello():
+  return jsonify(message='hello from the backend!')
 
-# weather testing
-place_full_name='hanoi, vn'
-'''
+# testing link: http://localhost:5000/getCityData?user_destination=hanoi&month=december
+@app.route('/getCityData', methods=['GET'])
+def get_city_data():
+  user_destination = request.args.get('user_destination')
+  month = request.args.get('month')
 
+  response = {}
+  place_id = get_place_id(user_destination)
+  place_details = get_place_details(place_id)
+  lat, lon = place_details[2], place_details[3]
+  restaurants_list = get_restaurants(lat, lon)
+  attractions_list = get_attractions(lat, lon)
+  typical_weather = get_typical_weather(user_destination, month)
+  response.update({'restaurants' : restaurants_list})
+  response.update({'attractions' : attractions_list})
+  response.update({'typical_weather' : typical_weather})
+
+  return jsonify(response)
 
 # # CREDIT to Sentdex
-user_destination = input("Enter a city: ")
-model_engine = "gpt-3.5-turbo"
-user_search_string = f"What city do you want to travel to?"
-user_search_string2 = f"What month will you travel?"
-user_search_string3 = f"What is the typical weather in {user_destination} in the month of January?"
+def get_typical_weather(destination, month):
+  user_search_string = f"What is the typical weather in {destination} in the month of {month}?"
 
-completion = openai.ChatCompletion.create(
-  model=model_engine,
-  messages=[{"role": "user", "content": user_search_string3}],
-  # max_tokens=30,
-  n=1,
-  stop=None, 
-  temperature=0.5,
-)
-chatgpt_response = completion.choices[0].message.content
-print("chatgpt_response >> ", chatgpt_response)
+  completion = openai.ChatCompletion.create(
+    model=model_engine,
+    messages=[{"role": "user", "content": user_search_string}],
+    # max_tokens=30,
+    n=1,
+    stop=None, 
+    temperature=0.5,
+  )
+  chatgpt_response = completion.choices[0].message.content
+  return chatgpt_response
 
-# message_history = []
-# user_search_string = f"What is the most famous attraction in this city?"
-# message_history.append({"role": "user", "content": user_search_string})
-# # print("message_history only user >> ", message_history)
-
-# message_history.append({"role": "assistant", "content": chatgpt_response})
-# # print("message_history with assistant >> ", message_history)
-
-# completion = openai.ChatCompletion.create(
-#   model=model_engine,
-#   messages=message_history,
-# )
-
-# chatgpt_response = completion.choices[0].message.content
-# print("chatgpt_response 2 >> ", chatgpt_response)
-
-
-#get google place id
 def get_place_id(user_dest):
   google_place_id_url=f'https://maps.googleapis.com/maps/api/geocode/json?address={user_dest}&key={google_places_api_key}'
   response_google_place_id = requests.get(google_place_id_url)
@@ -65,15 +58,12 @@ def get_place_id(user_dest):
   retreived_place_id = converted_place_id_response['results'][0]['place_id']
   return retreived_place_id
 
-
-#get place details 
 def get_place_details(place_id):
   google_place_details_url=f'https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&key={google_places_api_key}'
   response_google_place_details = requests.get(google_place_details_url)
   converted_place_full_details_response = json.loads(response_google_place_details.text)
   retreived_place_full_details = converted_place_full_details_response['result']
 
-  #access the desired details  
   place_full_name = retreived_place_full_details["formatted_address"]
   place_url = retreived_place_full_details["url"]
   place_lat = retreived_place_full_details['geometry']['location']['lat']
@@ -108,34 +98,25 @@ def get_attractions(lat,lng):
 
   return attractions_list
 
-def get_weather_data(place_name):
-  #get weather data
-  weatherbit_forecast_url = f'https://api.weatherbit.io/v2.0/forecast/daily?city={place_name}&key={weatherbit_api_key}'
+# def get_weather_data(place_name):
+#   weatherbit_forecast_url = f'https://api.weatherbit.io/v2.0/forecast/daily?city={place_name}&key={weatherbit_api_key}'
 
-  response_weatherbit_forecast = requests.get(weatherbit_forecast_url)
-  converted_weather_response = json.loads(response_weatherbit_forecast.text)
-  retreived_weather=converted_weather_response["data"][:7]
-  weather_instances_list = [WeatherDay(weather_obj) for weather_obj in retreived_weather]
+#   response_weatherbit_forecast = requests.get(weatherbit_forecast_url)
+#   converted_weather_response = json.loads(response_weatherbit_forecast.text)
+#   retreived_weather=converted_weather_response["data"][:7]
+#   weather_instances_list = [WeatherDay(weather_obj) for weather_obj in retreived_weather]
   
-  return weather_instances_list
+#   return weather_instances_list
 
-# CREDIT Chatgpt
-class WeatherDay:
-  def __init__(self, weather_object):
-    self.date = weather_object.get('datetime', None)
-    self.min_temp = weather_object.get('min_temp' , None)
-    self.max_temp = weather_object.get('max_temp', None)
-    self.description = weather_object.get('weather', None).get('description', None)
+# class WeatherDay:
+#   def __init__(self, weather_object):
+#     self.date = weather_object.get('datetime', None)
+#     self.min_temp = weather_object.get('min_temp' , None)
+#     self.max_temp = weather_object.get('max_temp', None)
+#     self.description = weather_object.get('weather', None).get('description', None)
 
-  def __str__(self):
-    return f"Date: {self.date}. Degrees: {self.min_temp}-{self.max_temp}. Description: {self.description}"
-
+#   def __str__(self):
+#     return f"Date: {self.date}. Degrees: {self.min_temp}-{self.max_temp}. Description: {self.description}"
 
 if __name__ == '__main__':
-  print('hi py')
-  place_id = get_place_id(user_destination)
-  place_details = get_place_details(place_id)
-  lat, lon = place_details[2], place_details[3]
-  restaurants_list = get_restaurants(lat, lon)
-  attractions_list = get_attractions(lat, lon)
-  # print(attractions_list)
+  app.run(debug=True)
