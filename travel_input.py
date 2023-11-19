@@ -32,10 +32,7 @@ def get_city_data():
   restaurants_list = get_restaurants(lat, lon)
   attractions_list = get_attractions(lat, lon)
   upcoming_weather = get_weather_data(user_destination)
-  # response.update({'restaurants' : restaurants_list})
-  # response.update({'attractions' : attractions_list})
-  # response.update({'typical_weather' : typical_weather})
-  # response.update({'upcoming_weather' : upcoming_weather})
+
   response = {
     'sample': 'sample', 
     'restaurants' : restaurants_list, 
@@ -44,8 +41,6 @@ def get_city_data():
     'upcoming_weather' : upcoming_weather
     }
 
-  # print('upcoming_weather', upcoming_weather)
-  print('response', response)
   return jsonify(response)
 
 # # CREDIT to Sentdex
@@ -55,7 +50,7 @@ def get_typical_weather(destination, month):
   completion = openai.ChatCompletion.create(
     model=model_engine,
     messages=[{"role": "user", "content": user_search_string}],
-    # max_tokens=30,
+    max_tokens=30,
     n=1,
     stop=None, 
     temperature=0.5,
@@ -117,8 +112,7 @@ def get_weather_data(destination):
   converted_weather_response = response_weatherbit_forecast.json()
   retreived_weather=converted_weather_response.get('data', [])[:7]
   weather_instances_list = [WeatherDay(weather_obj) for weather_obj in retreived_weather]
-  # print('weather_instances_list', weather_instances_list)
-  # return weather_instances_list
+
   return [weather.to_json() for weather in weather_instances_list]
 
 class WeatherDay:
