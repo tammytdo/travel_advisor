@@ -5,6 +5,7 @@ import config
 import requests
 import json 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 openai.api_key = config.OPEN_AI_API_KEY
 google_places_api_key = config.GOOGLE_PLACES_API_KEY
@@ -12,14 +13,15 @@ weatherbit_api_key = config.WEATHER_BIT_API_KEY
 model_engine = "gpt-3.5-turbo"
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 @app.route('/', methods=['GET'])
 def hello():
   return jsonify(message='hello from the backend!')
 
-# testing link: http://localhost:5000/getCityData?user_destination=hanoi&month=december
 @app.route('/getCityData', methods=['GET'])
 def get_city_data():
+  print('Searching... ... ...')
   user_destination = request.args.get('user_destination')
   month = request.args.get('month')
 
@@ -33,7 +35,7 @@ def get_city_data():
   response.update({'restaurants' : restaurants_list})
   response.update({'attractions' : attractions_list})
   response.update({'typical_weather' : typical_weather})
-
+  print(response)
   return jsonify(response)
 
 # # CREDIT to Sentdex
