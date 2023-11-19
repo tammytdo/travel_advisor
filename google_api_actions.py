@@ -1,62 +1,8 @@
-# Create a Python script or web form to collect user input for travel date, start location, and destination.
-
-import openai
-import config
 import requests
-import json 
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+import json
+import config
 
-openai.api_key = config.OPEN_AI_API_KEY
 google_places_api_key = config.GOOGLE_PLACES_API_KEY
-weatherbit_api_key = config.WEATHER_BIT_API_KEY
-model_engine = "gpt-3.5-turbo"
-
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
-
-@app.route('/', methods=['GET'])
-def hello():
-  return jsonify(message='hello from the backend!')
-
-@app.route('/getCityData', methods=['GET'])
-def get_city_data():
-  print('Searching... ... ...')
-  user_destination = request.args.get('user_destination')
-  month = request.args.get('month')
-
-  typical_weather = get_typical_weather(user_destination, month)
-  place_id = get_place_id(user_destination)
-  place_details = get_place_details(place_id)
-  lat, lon = place_details[2], place_details[3]
-  restaurants_list = get_restaurants(lat, lon)
-  attractions_list = get_attractions(lat, lon)
-  upcoming_weather = get_weather_data(user_destination)
-
-  response = {
-    'sample': 'sample', 
-    'restaurants' : restaurants_list, 
-    'attractions' : attractions_list,
-    'typical_weather' : typical_weather,
-    'upcoming_weather' : upcoming_weather
-    }
-
-  return jsonify(response)
-
-# # CREDIT to Sentdex
-def get_typical_weather(destination, month):
-  user_search_string = f"What is the typical weather in {destination} in the month of {month}?"
-
-  completion = openai.ChatCompletion.create(
-    model=model_engine,
-    messages=[{"role": "user", "content": user_search_string}],
-    max_tokens=30,
-    n=1,
-    stop=None, 
-    temperature=0.5,
-  )
-  chatgpt_response = completion.choices[0].message.content
-  return chatgpt_response
 
 def get_place_id(user_dest):
   google_place_id_url=f'https://maps.googleapis.com/maps/api/geocode/json?address={user_dest}&key={google_places_api_key}'
@@ -104,32 +50,3 @@ def get_attractions(lat,lng):
       attractions_list.append(f"{attraction['name']}: {attraction.get('rating', 'N/A')} stars")
 
   return attractions_list
-
-def get_weather_data(destination):
-  weatherbit_forecast_url = f'https://api.weatherbit.io/v2.0/forecast/daily?city={destination}&key={weatherbit_api_key}'
-
-  response_weatherbit_forecast = requests.get(weatherbit_forecast_url)
-  converted_weather_response = response_weatherbit_forecast.json()
-  retreived_weather=converted_weather_response.get('data', [])[:7]
-  weather_instances_list = [WeatherDay(weather_obj) for weather_obj in retreived_weather]
-
-  return [weather.to_json() for weather in weather_instances_list]
-
-class WeatherDay:
-  def __init__(self, weather_object):
-    self.date = weather_object.get('datetime', None)
-    self.min_temp = weather_object.get('min_temp' , None)
-    self.max_temp = weather_object.get('max_temp', None)
-    self.description = weather_object.get('weather', None).get('description', None)
-
-  def to_json(self):
-      return {
-          "date": self.date,
-          "min_temp": self.min_temp,
-          "max_temp": self.max_temp,
-          "description": self.description
-      }
-
-if __name__ == '__main__':
-  print('hi py')
-  app.run(debug=True)
