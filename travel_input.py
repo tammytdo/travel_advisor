@@ -119,4 +119,5 @@ def get_attractions(lat,lng):
 #     return f"Date: {self.date}. Degrees: {self.min_temp}-{self.max_temp}. Description: {self.description}"
 
 if __name__ == '__main__':
+  print('hi py')
   app.run(debug=True)
