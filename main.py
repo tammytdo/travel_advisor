@@ -34,13 +34,15 @@ def get_city_data():
   upcoming_weather = get_weather_data(user_destination)
 
   response = {
-    # 'sample': 'sample', 
-    'restaurants' : restaurants_list, 
-    'attractions' : attractions_list,
+    'city' : request.args.get('user_destination'),
+    'lat' : place_details[2],
+    'lat' : place_details[3],
     'typical_weather' : typical_weather,
-    'upcoming_weather' : upcoming_weather
+    'upcoming_weather' : upcoming_weather,
+    'attractions' : attractions_list,
+    'restaurants' : restaurants_list
     }
-
+  print(response)
   return jsonify(response)
 
 if __name__ == '__main__':
