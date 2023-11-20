@@ -34,7 +34,13 @@ def get_restaurants(lat,lng):
 
   restaurant_list = []
   for restaurant in nearby_restaurant_results_sorted:
-      restaurant_list.append(f"{restaurant['name']}: {restaurant.get('rating', 'N/A')} stars")
+      restaurant_list.append({
+          "name": restaurant['name'],
+          "rating": restaurant.get('rating', 'N/A'),
+          "address": restaurant['vicinity'],
+          "lat": restaurant['geometry']['location']['lat'],
+          "lng": restaurant['geometry']['location']['lng']
+      })
 
   return restaurant_list
 
@@ -47,6 +53,12 @@ def get_attractions(lat,lng):
   nearby_attraction_results_sorted = sorted(nearby_attraction_results, key=lambda x: x.get('rating', 0), reverse=True)
   attractions_list = []
   for attraction in nearby_attraction_results_sorted:
-      attractions_list.append(f"{attraction['name']}: {attraction.get('rating', 'N/A')} stars")
+      attractions_list.append({
+        "name": attraction['name'],
+        "address": attraction['vicinity'],
+        "rating": attraction.get('rating', 'N/A'),
+        "lat": attraction['geometry']['location']['lat'],
+        "lng": attraction['geometry']['location']['lng']
+    })
 
   return attractions_list
