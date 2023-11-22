@@ -36,7 +36,7 @@ def get_city_data():
   response = {
     'city' : request.args.get('user_destination'),
     'lat' : place_details[2],
-    'lat' : place_details[3],
+    'lng' : place_details[3],
     'typical_weather' : typical_weather,
     'upcoming_weather' : upcoming_weather,
     'attractions' : attractions_list,
