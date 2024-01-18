@@ -4,6 +4,7 @@ class WeatherDay:
     self.min_temp = weather_object.get('min_temp' , None)
     self.max_temp = weather_object.get('max_temp', None)
     self.description = weather_object.get('weather', None).get('description', None)
+    self.weather_icon = weather_object.get('weather', None).get('icon', None)
 
   def to_json(self):
       return {

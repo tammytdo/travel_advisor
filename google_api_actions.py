@@ -32,15 +32,26 @@ def get_restaurants(lat,lng):
   nearby_restaurant_results = [restaurant for restaurant in converted_nearby_restaurants_search['results']]
   nearby_restaurant_results_sorted = sorted(nearby_restaurant_results, key=lambda x: x.get('rating', 0), reverse=True)
 
-  restaurant_list = []
+  restaurant_list_unsorted = []
   for restaurant in nearby_restaurant_results_sorted:
-      restaurant_list.append({
-          "name": restaurant['name'],
-          "rating": restaurant.get('rating', 'N/A'),
-          "address": restaurant['vicinity'],
-          "lat": restaurant['geometry']['location']['lat'],
-          "lng": restaurant['geometry']['location']['lng']
+        excluded_types = ['lodging', 'spa', 'gym']
+        if (
+            not any(excluded_type in restaurant['types'] for excluded_type in excluded_types) 
+            and restaurant.get('rating', 0) >= 3.5 
+            and restaurant.get('user_ratings_total', 0) > 100
+        ):
+          restaurant_list_unsorted.append({
+            "name": restaurant['name'],
+            "rating": restaurant.get('rating', 'N/A'),
+            "address": restaurant['vicinity'],
+            "lat": restaurant['geometry']['location']['lat'],
+            "lng": restaurant['geometry']['location']['lng'],
+            "price_level": restaurant.get('price_level', 'N/A'),
+            "photos": restaurant.get('photos', [{'html_attributions': []}])[0]['html_attributions'],
+            "types": restaurant['types']
       })
+
+  restaurant_list = sorted(  restaurant_list_unsorted = [], key=lambda x: x['rating'], reverse=True)
 
   return restaurant_list
 
@@ -51,14 +62,22 @@ def get_attractions(lat,lng):
   converted_nearby_attractions_search = json.loads(response_nearby_attraction_search.text)
   nearby_attraction_results = [attraction for attraction in converted_nearby_attractions_search['results']]
   nearby_attraction_results_sorted = sorted(nearby_attraction_results, key=lambda x: x.get('rating', 0), reverse=True)
-  attractions_list = []
+  attractions_list_unsorted = []
   for attraction in nearby_attraction_results_sorted:
-      attractions_list.append({
+    if attraction.get('rating', 0) >= 3.5 and attraction.get('user_ratings_total', 0) > 200:
+      attractions_list_unsorted.append({
         "name": attraction['name'],
         "address": attraction['vicinity'],
         "rating": attraction.get('rating', 'N/A'),
         "lat": attraction['geometry']['location']['lat'],
-        "lng": attraction['geometry']['location']['lng']
+        "lng": attraction['geometry']['location']['lng'],
+        "price_level": attraction.get('price_level', 'N/A'),
+        "photos": attraction.get('photos', [{'html_attributions': []}])[0]['html_attributions'],
+        "types": attraction['types']
+
     })
+
+
+  attractions_list = sorted(  attractions_list_unsorted = [], key=lambda x: x['rating'], reverse=True)
 
   return attractions_list

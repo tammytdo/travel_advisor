@@ -11,7 +11,7 @@ def get_typical_weather(destination, month):
   completion = openai.ChatCompletion.create(
     model=model_engine,
     messages=[{"role": "user", "content": user_search_string}],
-    max_tokens=100,
+    max_tokens=30,
     n=1,
     stop=None, 
     temperature=0.5,

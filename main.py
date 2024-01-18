@@ -47,4 +47,4 @@ def get_city_data():
 
 if __name__ == '__main__':
   print('hi py')
-  app.run(debug=True)
+  app.run(port=config.PORT, debug=True)
