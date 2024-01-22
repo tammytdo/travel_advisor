@@ -4,11 +4,6 @@ import config
 
 google_places_api_key = config.GOOGLE_PLACES_API_KEY
 
-def import_json_file(file_path):
-    with open(file_path, 'r') as json_file:
-        data = json.load(json_file)
-    return data
-
 def get_place_id(user_dest):
   google_place_id_url=f'https://maps.googleapis.com/maps/api/geocode/json?address={user_dest}&key={google_places_api_key}'
   response_google_place_id = requests.get(google_place_id_url)
@@ -38,7 +33,7 @@ def get_restaurants(lat,lng):
   nearby_restaurant_results = [restaurant for restaurant in converted_nearby_restaurants_search['results']]
   nearby_restaurant_results_sorted_rating = sorted(nearby_restaurant_results, key=lambda x: x.get('rating', 0), reverse=True)
 
-  restaurant_list_unsorted = []
+  restaurant_list_sorted_and_filtered = []
   for restaurant in nearby_restaurant_results_sorted_rating:
         excluded_types = ['lodging', 'spa', 'gym']
         if (
@@ -46,7 +41,7 @@ def get_restaurants(lat,lng):
             and restaurant.get('rating', 0) >= 3.5 
             and restaurant.get('user_ratings_total', 0) > 100
         ):
-          restaurant_list_unsorted.append({
+          restaurant_list_sorted_and_filtered.append({
             "name": restaurant['name'],
             "rating": restaurant.get('rating', 'N/A'),
             "address": restaurant['vicinity'],
@@ -57,7 +52,7 @@ def get_restaurants(lat,lng):
             "types": restaurant['types']
       })
           
-  return restaurant_list_unsorted
+  return restaurant_list_sorted_and_filtered
  
 
 #get tourist attractions within 16000 meters / 10 miles
@@ -67,10 +62,10 @@ def get_attractions(lat,lng):
   converted_nearby_attractions_search = json.loads(response_nearby_attraction_search.text)
   nearby_attraction_results = [attraction for attraction in converted_nearby_attractions_search['results']]
   nearby_attraction_results_sorted = sorted(nearby_attraction_results, key=lambda x: x.get('rating', 0), reverse=True)
-  attractions_list_unsorted = []
+  attractions_list_sorted_and_filtered = []
   for attraction in nearby_attraction_results_sorted:
     if attraction.get('rating', 0) >= 3.5 and attraction.get('user_ratings_total', 0) > 200:
-      attractions_list_unsorted.append({
+      attractions_list_sorted_and_filtered.append({
         "name": attraction['name'],
         "address": attraction['vicinity'],
         "rating": attraction.get('rating', 'N/A'),
@@ -81,8 +76,5 @@ def get_attractions(lat,lng):
         "types": attraction['types']
 
     })
-
-
-  attractions_list = sorted(  attractions_list_unsorted = [], key=lambda x: x['rating'], reverse=True)
-
-  return attractions_list
+      
+  return attractions_list_sorted_and_filtered
