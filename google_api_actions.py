@@ -4,6 +4,11 @@ import config
 
 google_places_api_key = config.GOOGLE_PLACES_API_KEY
 
+def import_json_file(file_path):
+    with open(file_path, 'r') as json_file:
+        data = json.load(json_file)
+    return data
+
 def get_place_id(user_dest):
   google_place_id_url=f'https://maps.googleapis.com/maps/api/geocode/json?address={user_dest}&key={google_places_api_key}'
   response_google_place_id = requests.get(google_place_id_url)
@@ -26,14 +31,22 @@ def get_place_details(place_id):
 
 #get restaurants within 16000 meters / 10 miles
 def get_restaurants(lat,lng):
-  google_nearby_restaurants_url = f'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&type=restaurant&radius=16000&key={google_places_api_key}'
-  response_nearby_restaurants_search = requests.get(google_nearby_restaurants_url)
-  converted_nearby_restaurants_search = json.loads(response_nearby_restaurants_search.text)
+  # google_nearby_restaurants_url = f'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&type=restaurant&radius=16000&key={google_places_api_key}'
+
+  # response_nearby_restaurants_search = requests.get(google_nearby_restaurants_url)
+  restaurants_data_path = "sample_response/sample_restaurants.json" # for testing
+  
+  # converted_nearby_restaurants_search = json.loads(response_nearby_restaurants_search.text)
+  
+
+  converted_nearby_restaurants_search = import_json_file(restaurants_data_path)  # for testing 
+
   nearby_restaurant_results = [restaurant for restaurant in converted_nearby_restaurants_search['results']]
-  nearby_restaurant_results_sorted = sorted(nearby_restaurant_results, key=lambda x: x.get('rating', 0), reverse=True)
+
+  nearby_restaurant_results_sorted_rating = sorted(nearby_restaurant_results, key=lambda x: x.get('rating', 0), reverse=True)
 
   restaurant_list_unsorted = []
-  for restaurant in nearby_restaurant_results_sorted:
+  for restaurant in nearby_restaurant_results_sorted_rating:
         excluded_types = ['lodging', 'spa', 'gym']
         if (
             not any(excluded_type in restaurant['types'] for excluded_type in excluded_types) 
@@ -50,10 +63,9 @@ def get_restaurants(lat,lng):
             "photos": restaurant.get('photos', [{'html_attributions': []}])[0]['html_attributions'],
             "types": restaurant['types']
       })
-
-  restaurant_list = sorted(  restaurant_list_unsorted = [], key=lambda x: x['rating'], reverse=True)
-
-  return restaurant_list
+          
+  return restaurant_list_unsorted
+ 
 
 #get tourist attractions within 16000 meters / 10 miles
 def get_attractions(lat,lng):
