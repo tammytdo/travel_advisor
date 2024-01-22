@@ -29,20 +29,31 @@ def get_restaurants(lat,lng):
   google_nearby_restaurants_url = f'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&type=restaurant&radius=16000&key={google_places_api_key}'
   response_nearby_restaurants_search = requests.get(google_nearby_restaurants_url)
   converted_nearby_restaurants_search = json.loads(response_nearby_restaurants_search.text)
+  
   nearby_restaurant_results = [restaurant for restaurant in converted_nearby_restaurants_search['results']]
-  nearby_restaurant_results_sorted = sorted(nearby_restaurant_results, key=lambda x: x.get('rating', 0), reverse=True)
+  nearby_restaurant_results_sorted_rating = sorted(nearby_restaurant_results, key=lambda x: x.get('rating', 0), reverse=True)
 
-  restaurant_list = []
-  for restaurant in nearby_restaurant_results_sorted:
-      restaurant_list.append({
-          "name": restaurant['name'],
-          "rating": restaurant.get('rating', 'N/A'),
-          "address": restaurant['vicinity'],
-          "lat": restaurant['geometry']['location']['lat'],
-          "lng": restaurant['geometry']['location']['lng']
+  restaurant_list_sorted_and_filtered = []
+  for restaurant in nearby_restaurant_results_sorted_rating:
+        excluded_types = ['lodging', 'spa', 'gym']
+        if (
+            not any(excluded_type in restaurant['types'] for excluded_type in excluded_types) 
+            and restaurant.get('rating', 0) >= 3.5 
+            and restaurant.get('user_ratings_total', 0) > 100
+        ):
+          restaurant_list_sorted_and_filtered.append({
+            "name": restaurant['name'],
+            "rating": restaurant.get('rating', 'N/A'),
+            "address": restaurant['vicinity'],
+            "lat": restaurant['geometry']['location']['lat'],
+            "lng": restaurant['geometry']['location']['lng'],
+            "price_level": restaurant.get('price_level', 'N/A'),
+            "photos": restaurant.get('photos', [{'html_attributions': []}])[0]['html_attributions'],
+            "types": restaurant['types']
       })
-
-  return restaurant_list
+          
+  return restaurant_list_sorted_and_filtered
+ 
 
 #get tourist attractions within 16000 meters / 10 miles
 def get_attractions(lat,lng):
@@ -51,14 +62,19 @@ def get_attractions(lat,lng):
   converted_nearby_attractions_search = json.loads(response_nearby_attraction_search.text)
   nearby_attraction_results = [attraction for attraction in converted_nearby_attractions_search['results']]
   nearby_attraction_results_sorted = sorted(nearby_attraction_results, key=lambda x: x.get('rating', 0), reverse=True)
-  attractions_list = []
+  attractions_list_sorted_and_filtered = []
   for attraction in nearby_attraction_results_sorted:
-      attractions_list.append({
+    if attraction.get('rating', 0) >= 3.5 and attraction.get('user_ratings_total', 0) > 200:
+      attractions_list_sorted_and_filtered.append({
         "name": attraction['name'],
         "address": attraction['vicinity'],
         "rating": attraction.get('rating', 'N/A'),
         "lat": attraction['geometry']['location']['lat'],
-        "lng": attraction['geometry']['location']['lng']
-    })
+        "lng": attraction['geometry']['location']['lng'],
+        "price_level": attraction.get('price_level', 'N/A'),
+        "photos": attraction.get('photos', [{'html_attributions': []}])[0]['html_attributions'],
+        "types": attraction['types']
 
-  return attractions_list
+    })
+      
+  return attractions_list_sorted_and_filtered
