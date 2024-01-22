@@ -31,18 +31,11 @@ def get_place_details(place_id):
 
 #get restaurants within 16000 meters / 10 miles
 def get_restaurants(lat,lng):
-  # google_nearby_restaurants_url = f'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&type=restaurant&radius=16000&key={google_places_api_key}'
-
-  # response_nearby_restaurants_search = requests.get(google_nearby_restaurants_url)
-  restaurants_data_path = "sample_response/sample_restaurants.json" # for testing
+  google_nearby_restaurants_url = f'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&type=restaurant&radius=16000&key={google_places_api_key}'
+  response_nearby_restaurants_search = requests.get(google_nearby_restaurants_url)
+  converted_nearby_restaurants_search = json.loads(response_nearby_restaurants_search.text)
   
-  # converted_nearby_restaurants_search = json.loads(response_nearby_restaurants_search.text)
-  
-
-  converted_nearby_restaurants_search = import_json_file(restaurants_data_path)  # for testing 
-
   nearby_restaurant_results = [restaurant for restaurant in converted_nearby_restaurants_search['results']]
-
   nearby_restaurant_results_sorted_rating = sorted(nearby_restaurant_results, key=lambda x: x.get('rating', 0), reverse=True)
 
   restaurant_list_unsorted = []
